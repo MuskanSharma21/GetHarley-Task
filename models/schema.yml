@@ -1,0 +1,135 @@
+version: 2
+
+models:
+  - name: fact_messages
+    description: "Fact table containing message events and metrics"
+    columns:
+      - name: message_id
+        description: "Primary key - unique identifier for each message"
+        tests:
+          - unique
+          - not_null
+      - name: conversation_id
+        description: "Foreign key to dim_conversations"
+        tests:
+          - relationships:
+              to: ref('dim_conversations')
+              field: conversation_id
+      - name: customer_id
+        description: "Foreign key to dim_customers"
+        tests:
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: clinic_code
+        description: "Foreign key to dim_clinics"
+        tests:
+          - relationships:
+              to: ref('dim_clinics')
+              field: clinic_code
+      - name: date_id
+        description: "Foreign key to dim_dates"
+        tests:
+          - relationships:
+              to: ref('dim_dates')
+              field: date_id
+      - name: message_count
+        description: "Count of messages (always 1 in this grain)"
+      - name: inbound_message_count
+        description: "Flag for inbound messages (1 if inbound, 0 if outbound)"
+      - name: outbound_message_count
+        description: "Flag for outbound messages (1 if outbound, 0 if inbound)"
+      - name: initial_message_count
+        description: "Flag for initial messages in a conversation"
+      - name: followup_message_count
+        description: "Flag for follow-up messages in a conversation"
+      - name: response_message_count
+        description: "Flag for response messages in a conversation"
+      - name: minutes_since_last_message
+        description: "Time difference in minutes from the previous message in the conversation"
+
+  - name: dim_conversations
+    description: "Dimension table containing conversation attributes and tags"
+    columns:
+      - name: conversation_id
+        description: "Primary key for conversations"
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Foreign key to customer dimension"
+        tests:
+          - not_null
+      - name: clinic_code
+        description: "Foreign key to clinic dimension"
+      - name: status
+        description: "Current status of the conversation"
+      - name: tags
+        description: "Comma-separated list of conversation tags"
+      - name: tag_count
+        description: "Number of tags associated with the conversation"
+      - name: is_urgent
+        description: "Flag indicating if conversation is marked as urgent"
+      - name: is_sensitive
+        description: "Flag indicating if conversation contains sensitive information"
+      - name: is_pog
+        description: "Flag indicating if conversation is related to POG"
+      - name: is_plan
+        description: "Flag indicating if conversation is related to a plan"
+
+  - name: dim_customers
+    description: "Dimension table containing customer attributes and metrics"
+    columns:
+      - name: customer_id
+        description: "Primary key for customers"
+        tests:
+          - unique
+          - not_null
+      - name: clinic_code
+        description: "Foreign key to clinic dimension"
+      - name: clinic_name
+        description: "Name of the associated clinic"
+      - name: total_conversations
+        description: "Total number of conversations for the customer"
+      - name: open_conversations
+        description: "Number of open conversations"
+      - name: completed_conversations
+        description: "Number of completed conversations"
+      - name: urgent_conversations
+        description: "Number of urgent conversations"
+      - name: sensitive_conversations
+        description: "Number of sensitive conversations"
+      - name: customer_segment
+        description: "Customer segment based on conversation volume"
+
+  - name: dim_clinics
+    description: "Dimension table containing clinic information"
+    columns:
+      - name: clinic_code
+        description: "Primary key - unique code for each clinic"
+        tests:
+          - unique
+          - not_null
+      - name: clinic_name
+        description: "Name of the clinic"
+      - name: clinic_type
+        description: "Type of clinic (LLC, Inc, Group, Other)"
+
+  - name: dim_dates
+    description: "Date dimension table"
+    columns:
+      - name: date_id
+        description: "Primary key for dates"
+        tests:
+          - unique
+          - not_null
+      - name: year
+        description: "Year part of the date"
+      - name: month
+        description: "Month number (1-12)"
+      - name: day
+        description: "Day of the month"
+      - name: day_of_week
+        description: "Day of week (0-6, 0 being Sunday)"
+      - name: is_business_day
+        description: "Flag indicating if date is a business day"

@@ -1,0 +1,57 @@
+version: 2
+
+sources:
+  - name: getharley
+    database: GETHARLEY
+    schema: dev
+    tables:
+      - name: messages
+        columns:
+          - name: id
+            tests:
+              - unique
+              - not_null
+          - name: conversation_id
+          - name: direction
+          - name: direction_type
+          - name: channel
+          - name: date_time
+
+      - name: conversations
+        columns:
+          - name: conversation_id
+            tests:
+              - unique
+              - not_null
+          - name: status
+          - name: customer_id
+
+      - name: clinics
+        columns:
+          - name: name
+          - name: code
+            tests:
+              - unique
+              - not_null
+
+      - name: conversation_tags
+        columns:
+          - name: conversation_id
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('stg_conversations')
+                  field: conversation_id
+          - name: tag
+
+      - name: customers
+        columns:
+          - name: customer_id
+            tests:
+              - unique
+              - not_null
+          - name: code
+            tests:
+              - relationships:
+                  to: ref('stg_clinics')
+                  field: code

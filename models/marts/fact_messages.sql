@@ -4,32 +4,57 @@
     incremental_strategy='append'
 ) }}
 
-with enriched_messages as (
-    select * from {{ ref('int_messages_enriched') }}
+-- First, ensure messages are unique from source
+with base_messages as (
+    select distinct
+        message_id,
+        conversation_id,
+        direction,
+        direction_type,
+        channel,
+        message_timestamp,
+        message_date,
+        message_hour,
+        customer_id,
+        conversation_status
+    from {{ ref('int_messages_enriched') }}
     {% if is_incremental() %}
     where message_timestamp > (select max(message_timestamp) from {{ this }})
     {% endif %}
 ),
 
-conversations as (
-    select * from {{ ref('dim_conversations') }}
+-- Get the latest conversation attributes
+latest_conversations as (
+    select distinct
+        conversation_id,
+        tags,
+        is_urgent,
+        is_sensitive,
+        is_pog,
+        is_plan
+    from {{ ref('dim_conversations') }}
 ),
 
-customers as (
-    select * from {{ ref('dim_customers') }}
+-- Get the latest customer attributes
+latest_customers as (
+    select distinct
+        customer_id,
+        clinic_code
+    from {{ ref('dim_customers') }}
 )
 
-select
-    em.message_id,
-    em.conversation_id,
-    em.customer_id,
+-- Final select with all attributes
+select distinct
+    bm.message_id,
+    bm.conversation_id,
+    bm.customer_id,
     c.clinic_code,
-    cast(em.message_date as date) as date_id,
-    em.message_timestamp,
-    em.message_hour,
-    em.direction,
-    em.direction_type,
-    em.channel,
+    cast(bm.message_date as date) as date_id,
+    bm.message_timestamp,
+    bm.message_hour,
+    bm.direction,
+    bm.direction_type,
+    bm.channel,
     conv.tags,
     conv.is_urgent,
     conv.is_sensitive,
@@ -37,18 +62,18 @@ select
     conv.is_plan,
     -- Metrics
     1 as message_count,
-    case when em.direction = 'in' then 1 else 0 end as inbound_message_count,
-    case when em.direction = 'out' then 1 else 0 end as outbound_message_count,
-    case when em.direction_type like '%initial%' then 1 else 0 end as initial_message_count,
-    case when em.direction_type like '%followup%' then 1 else 0 end as followup_message_count,
-    case when em.direction_type like '%response%' then 1 else 0 end as response_message_count,
+    case when bm.direction = 'in' then 1 else 0 end as inbound_message_count,
+    case when bm.direction = 'out' then 1 else 0 end as outbound_message_count,
+    case when bm.direction_type like '%initial%' then 1 else 0 end as initial_message_count,
+    case when bm.direction_type like '%followup%' then 1 else 0 end as followup_message_count,
+    case when bm.direction_type like '%response%' then 1 else 0 end as response_message_count,
     -- Response time calculation
     case 
-        when lag(em.message_timestamp) over (partition by em.conversation_id order by em.message_timestamp) is not null
-        then datediff('minute', lag(em.message_timestamp) over (partition by em.conversation_id order by em.message_timestamp), em.message_timestamp)
+        when lag(bm.message_timestamp) over (partition by bm.conversation_id order by bm.message_timestamp) is not null
+        then datediff('minute', lag(bm.message_timestamp) over (partition by bm.conversation_id order by bm.message_timestamp), bm.message_timestamp)
     end as minutes_since_last_message
-from enriched_messages em
-left join conversations conv
-    on em.conversation_id = conv.conversation_id
-left join customers c
-    on em.customer_id = c.customer_id
+from base_messages bm
+left join latest_conversations conv
+    on bm.conversation_id = conv.conversation_id
+left join latest_customers c
+    on bm.customer_id = c.customer_id

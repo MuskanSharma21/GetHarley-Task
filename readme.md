@@ -2,6 +2,26 @@
 
 A star schema data warehouse implemented using dbt and Snowflake to analyze customer conversations and messaging patterns. The warehouse features incremental loading for fact tables and SCD Type 2 for tracking dimensional changes, enabling comprehensive analysis of customer interactions and clinic performance.
 
+
+### Data Quality Assumptions
+1. **Message Uniqueness**
+   - Each message has a unique identifier
+   - Messages cannot be edited after creation (append-only)
+   - Message timestamps are always present and accurate
+
+2. **Referential Integrity**
+   - Every message belongs to exactly one conversation
+   - Every conversation belongs to one customer
+   - Every customer is associated with one clinic
+   - No orphaned records exist in the system
+
+3. **Business Logic Assumptions**
+   - Conversation status changes need historical tracking
+   - Customer-clinic relationships are relatively stable
+   - Tags are current state only (no historical tracking needed)
+   - Response times are calculated within the same conversation only
+
+   
 ## Business Problems Solved
 
 ### 1. Response Time Analysis
@@ -18,6 +38,7 @@ Compare clinic performance metrics including response times, conversation volume
 
 ### 5. Historical Trend Analysis
 Track changes in conversation patterns and clinic performance over time using SCD Type 2 tracking in dimension tables.
+
 
 ## Data Model
 

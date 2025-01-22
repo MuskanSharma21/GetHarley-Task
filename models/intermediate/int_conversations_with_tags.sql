@@ -6,7 +6,6 @@ conversation_tags as (
     select * from {{ ref('stg_conversation_tags') }}
 ),
 
--- Aggregate tags for each conversation
 conversation_tag_groups as (
     select
         conversation_id,

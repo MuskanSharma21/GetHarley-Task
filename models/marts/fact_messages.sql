@@ -4,7 +4,7 @@
     incremental_strategy='append'
 ) }}
 
--- First, ensure messages are unique from source
+-- Unique messages from source
 with base_messages as (
     select distinct
         message_id,
@@ -23,7 +23,7 @@ with base_messages as (
     {% endif %}
 ),
 
--- Get the latest conversation attributes
+-- Latest conversation details
 latest_conversations as (
     select distinct
         conversation_id,
@@ -35,7 +35,7 @@ latest_conversations as (
     from {{ ref('dim_conversations') }}
 ),
 
--- Get the latest customer attributes
+-- Latest customer details
 latest_customers as (
     select distinct
         customer_id,
@@ -43,7 +43,7 @@ latest_customers as (
     from {{ ref('dim_customers') }}
 )
 
--- Final select with all attributes
+-- Final select 
 select distinct
     bm.message_id,
     bm.conversation_id,

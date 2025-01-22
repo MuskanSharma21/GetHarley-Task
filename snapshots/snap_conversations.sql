@@ -4,7 +4,7 @@
       target_schema='wh',
       unique_key='conversation_id',
       strategy='check',
-      check_cols=['status', 'tags']
+      check_cols=['status']
     )
 }}
 

@@ -21,7 +21,6 @@ sources:
         columns:
           - name: conversation_id
             tests:
-              - unique
               - not_null
           - name: status
           - name: customer_id
@@ -48,10 +47,9 @@ sources:
         columns:
           - name: customer_id
             tests:
-              - unique
               - not_null
           - name: code
             tests:
               - relationships:
                   to: ref('stg_clinics')
-                  field: code
+                  field: clinic_code

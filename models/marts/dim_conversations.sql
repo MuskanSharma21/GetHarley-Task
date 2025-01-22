@@ -1,4 +1,3 @@
--- models/marts/dim_conversations.sql
 {{ config(materialized='table') }}
 
 with conversation_history as (

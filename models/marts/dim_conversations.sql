@@ -22,11 +22,9 @@ enriched_conversations as (
         c.is_sensitive,
         c.is_pog,
         c.is_plan,
-        -- Add status flags
         case when c.status = 'open' then true else false end as is_open,
         case when c.status = 'done' then true else false end as is_completed,
         case when c.status = 'snoozed' then true else false end as is_snoozed,
-        -- Add history tracking
         ch.valid_from,
         ch.valid_to,
         ch.is_current
